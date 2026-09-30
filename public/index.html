@@ -1,41 +1,19 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laboratório de Autenticação - Cloudflare Pages</title>
-  <style>
-    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f9; }
-    .card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
-    .btn-github { background-color: #24292e; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 15px; }
-    .btn-github:hover { background-color: #000; }
-    .user-info { margin-top: 20px; padding: 10px; background-color: #e9f5ff; border-radius: 5px; color: #0056b3; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>Autenticação Cloudflare</h2>
-    <p>Projeto do Laboratório com Cloudflare Pages + D1</p>
-    
-    <div id="auth-area">
-      <a href="/api/auth/github" class="btn-github">Entrar com GitHub</a>
-    </div>
-  </div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const username = params.get('user');
+  const avatar = params.get('avatar');
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('logged_in') === 'true') {
-      const name = params.get('name');
-      const email = params.get('email');
-      document.getElementById('auth-area').innerHTML = `
-        <div class="user-info">
-          <h3>Bem-vindo, ${name}!</h3>
-          <p>Email: ${email}</p>
-          <p><strong>Status:</strong> Autenticado com sucesso via GitHub e registado no D1!</p>
+  if (username) {
+    const authArea = document.getElementById('auth-area');
+    if (authArea) {
+      authArea.innerHTML = `
+        <div class="user-info" style="text-align: center;">
+          ${avatar ? `<img src="${avatar}" alt="${username}" style="width: 70px; height: 70px; border-radius: 50%; margin-bottom: 10px;">` : ''}
+          <h3>Bem-vindo, ${username}!</h3>
+          <p><strong>Status:</strong> Autenticado com sucesso via GitHub</p>
+          <a href="/" style="display: inline-block; margin-top: 10px; color: #dc3545; text-decoration: none;">Sair</a>
         </div>
-        <a href="/" style="display:inline-block; margin-top:10px; color:#666;">Sair</a>
       `;
     }
-  </script>
-</body>
-</html>
+  }
+</script>
