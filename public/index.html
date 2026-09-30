@@ -1,19 +1,73 @@
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const username = params.get('user');
-  const avatar = params.get('avatar');
-
-  if (username) {
-    const authArea = document.getElementById('auth-area');
-    if (authArea) {
-      authArea.innerHTML = `
-        <div class="user-info" style="text-align: center;">
-          ${avatar ? `<img src="${avatar}" alt="${username}" style="width: 70px; height: 70px; border-radius: 50%; margin-bottom: 10px;">` : ''}
-          <h3>Bem-vindo, ${username}!</h3>
-          <p><strong>Status:</strong> Autenticado com sucesso via GitHub</p>
-          <a href="/" style="display: inline-block; margin-top: 10px; color: #dc3545; text-decoration: none;">Sair</a>
-        </div>
-      `;
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autenticação Cloudflare</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f5f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-  }
-</script>
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    .btn-github {
+      background-color: #24292e;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      display: inline-block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .btn-github:hover {
+      background-color: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Autenticação Cloudflare</h2>
+    <p>Projeto do Laboratório com Cloudflare Pages + D1</p>
+
+    <div id="auth-area">
+      <a href="/api/auth/github" class="btn-github">Entrar com GitHub</a>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('user');
+    const avatar = params.get('avatar');
+
+    if (username) {
+      const authArea = document.getElementById('auth-area');
+      if (authArea) {
+        authArea.innerHTML = `
+          <div style="text-align: center;">
+            <img src="${avatar}" alt="${username}" style="width: 70px; height: 70px; border-radius: 50%; margin-bottom: 10px;">
+            <h3>Bem-vindo, ${username}!</h3>
+            <p><strong>Status:</strong> Autenticado com sucesso</p>
+            <a href="/" style="display: inline-block; margin-top: 10px; color: #dc3545; text-decoration: none;">Sair</a>
+          </div>
+        `;
+      }
+    }
+  </script>
+
+</body>
+</html>
