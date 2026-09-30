@@ -1,76 +1,60 @@
 export async function onRequestGet(context) {
   const { request, env } = context;
   const url = new URL(request.url);
-  const code = url.searchParams.get("code");
+  const code = url.searchParams.get('code');
 
   if (!code) {
-    return new Response("Código de autorização não fornecido.", { status: 400 });
+    return new Response('Código de autorização não encontrado.', { status: 400 });
+  }
+
+  const clientId = 'Ov23li0XnSsRfdtaIH1D';
+  const clientSecret = env.GITHUB_CLIENT_SECRET;
+
+  if (!clientSecret) {
+    return new Response('Erro: GITHUB_CLIENT_SECRET não está configurado nas variáveis do Cloudflare.', { status: 500 });
   }
 
   try {
-    // 1. Troca o código pelo Token de acesso do GitHub
-    const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
-      method: "POST",
+    // Solicita o token de acesso ao GitHub
+    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
-        client_id: env.GITHUB_CLIENT_ID,
-        client_secret: env.GITHUB_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         code: code
       })
     });
 
     const tokenData = await tokenResponse.json();
+
     if (tokenData.error) {
-      return new Response(`Erro ao obter token: ${tokenData.error_description}`, { status: 400 });
+      return new Response(`Erro do GitHub: ${tokenData.error_description || tokenData.error}`, { status: 400 });
     }
 
-    // 2. Procura os dados do utilizador no GitHub
-    const userResponse = await fetch("https://api.github.com/user", {
+    const accessToken = tokenData.access_token;
+
+    // Obtém os dados do utilizador autenticado
+    const userResponse = await fetch('https://api.github.com/user', {
       headers: {
-        "Authorization": `Bearer ${tokenData.access_token}`,
-        "User-Agent": "Cloudflare-Pages-App"
+        'Authorization': `token ${accessToken}`,
+        'User-Agent': 'Cloudflare-Pages-App'
       }
     });
+
     const userData = await userResponse.json();
 
-    let userEmail = userData.email;
-    if (!userEmail) {
-      const emailResponse = await fetch("https://api.github.com/user/emails", {
-        headers: {
-          "Authorization": `Bearer ${tokenData.access_token}`,
-          "User-Agent": "Cloudflare-Pages-App"
-        }
-      });
-      const emails = await emailResponse.json();
-      const primaryEmail = emails.find(e => e.primary) || emails[0];
-      userEmail = primaryEmail ? primaryEmail.email : `${userData.login}@github.com`;
-    }
+    // Redireciona de volta para a página inicial com o nome e foto do utilizador
+    const redirectUrl = new URL('/', request.url);
+    redirectUrl.searchParams.set('user', userData.login);
+    redirectUrl.searchParams.set('avatar', userData.avatar_url);
 
-    const userId = `github_${userData.id}`;
-    const userName = userData.name || userData.login;
-
-    // 3. Guarda ou atualiza na base de dados D1
-    await env.DB.prepare(`
-      INSERT INTO users (id, email, name, provider)
-      VALUES (?, ?, ?, 'github')
-      ON CONFLICT(email) DO UPDATE SET
-        name = excluded.name,
-        created_at = CURRENT_TIMESTAMP
-    `).bind(userId, userEmail, userName).run();
-
-    // 4. Redireciona de volta para a página inicial com os dados
-    const responseHeader = new Headers();
-    responseHeader.set("Location", `/?logged_in=true&name=${encodeURIComponent(userName)}&email=${encodeURIComponent(userEmail)}`);
-
-    return new Response(null, {
-      status: 302,
-      headers: responseHeader
-    });
+    return Response.redirect(redirectUrl.toString(), 302);
 
   } catch (err) {
-    return new Response(`Erro interno: ${err.message}`, { status: 500 });
+    return new Response(`Erro ao obter token: ${err.message}`, { status: 500 });
   }
 }
