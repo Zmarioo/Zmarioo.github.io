@@ -1,4 +1,4 @@
-CREATE TABLE usuarios (
+CREATE TABELA usuarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL
 );
